@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg[binary]
+python-multipart
+python-dotenv
+fpdf2
+opencv-python
+ultralytics
+python-jose[cryptography]
+bcrypt==5.0.0

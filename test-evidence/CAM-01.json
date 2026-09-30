@@ -1,0 +1,10 @@
+{
+  "vendor": "Vendor-A",
+  "camera_id": "CAM-01",
+  "location": "Main Entrance",
+  "codec": "H.264",
+  "recording_start": "2026-09-30T10:02:30",
+  "recording_end": "2026-09-30T10:02:41",
+  "clock_offset": 18,
+  "source": "SIMULATED_DVR_EXPORT"
+}
