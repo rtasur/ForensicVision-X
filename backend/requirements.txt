@@ -1,11 +1,11 @@
 fastapi
-uvicorn[standard]
+uvicorn==0.54.0
 sqlalchemy
 psycopg[binary]
 python-multipart
 python-dotenv
 fpdf2
-opencv-python
+opencv-python-headless==4.12.0.88
 ultralytics
-python-jose[cryptography]
 bcrypt==5.0.0
+python-jose[cryptography]

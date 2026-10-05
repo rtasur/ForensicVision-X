@@ -14,6 +14,8 @@ from security import get_password_hash
 # Import every model module before init_db() so SQLAlchemy knows all tables.
 import models  # noqa: F401,E402
 
+import os
+
 from routers import auth, audit, cases, evidence  # noqa: E402
 
 
@@ -85,9 +87,18 @@ app = FastAPI(
 )
 
 
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173",
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["Authorization", "Content-Type"],

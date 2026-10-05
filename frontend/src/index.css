@@ -3,28 +3,315 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font-family: Inter, "Segoe UI", Arial, sans-serif;
-  background: #080d16;
-  color: #dbe4ef;
+  background: #f4f1e8;
+  color: #0b263a;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
 
 * { box-sizing: border-box; }
 html, body, #root { min-height: 100%; }
-body { margin: 0; min-width: 1180px; background: #080d16; }
+html { scroll-behavior: smooth; }
+body { margin: 0; min-width: 0; background: #f4f1e8; }
 button, input, select, textarea { font: inherit; }
+button, input, select, textarea { border-radius: 0; }
 
-::-webkit-scrollbar { width: 9px; height: 9px; }
-::-webkit-scrollbar-track { background: #0b111c; }
-::-webkit-scrollbar-thumb { background: #223047; border-radius: 6px; }
-::-webkit-scrollbar-thumb:hover { background: #2e4464; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #e8e2d7; }
+::-webkit-scrollbar-thumb { background: #9ba6aa; }
+::-webkit-scrollbar-thumb:hover { background: #3e756c; }
 
-.focus-ring:focus-visible { outline: 2px solid #50b9ff; outline-offset: 2px; }
-.panel-grid {
+.focus-ring:focus-visible { outline: 3px solid #e65a33; outline-offset: 2px; }
+
+.panel-grid,
+.ambient-cctv {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.ambient-cctv::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 8% 12%, rgba(159, 194, 185, 0.14), transparent 32%),
+    radial-gradient(circle at 94% 82%, rgba(230, 90, 51, 0.025), transparent 28%);
+}
+
+/* Original moving CCTV grid restored for the global background and any
+ * local camera overlays that use the same utility class. */
+.ambient-grid {
+  position: absolute;
+  inset: 0;
   background-image:
-    linear-gradient(rgba(84, 115, 151, .045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(84, 115, 151, .045) 1px, transparent 1px);
+    linear-gradient(rgba(62, 117, 108, 0.075) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(62, 117, 108, 0.075) 1px, transparent 1px);
   background-size: 28px 28px;
+  background-position: 0 0;
+  opacity: 0.68;
+  mix-blend-mode: multiply;
+  animation: cctvGridDrift 32s linear infinite;
+  will-change: background-position;
+}
+
+.ambient-grid-layer {
+  overflow: hidden;
+  contain: paint;
+}
+
+/*
+ * Soft vertical gradient fields inspired by the supplied reference video.
+ * The fields deliberately remain low-opacity and blurred so the forensic UI,
+ * CCTV grid, and data panels stay readable.
+ */
+.ambient-gradient-field {
+  position: absolute;
+  top: -18%;
+  width: 24%;
+  height: 136%;
+  border-radius: 42% 58% 50% 50% / 30% 35% 65% 70%;
+  filter: blur(44px) saturate(112%);
+  transform-origin: center;
+  will-change: transform, opacity;
+  opacity: 0.46;
+}
+
+.ambient-gradient-a {
+  left: -12%;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(221, 231, 227, 0.03) 0%,
+      rgba(159, 194, 185, 0.40) 22%,
+      rgba(62, 117, 108, 0.30) 58%,
+      rgba(201, 215, 210, 0.04) 100%
+    );
+  animation: ambientBandA 27s ease-in-out infinite alternate;
+}
+
+.ambient-gradient-b {
+  left: 6%;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(201, 215, 210, 0.05) 0%,
+      rgba(221, 231, 227, 0.41) 24%,
+      rgba(159, 194, 185, 0.31) 60%,
+      rgba(62, 117, 108, 0.15) 100%
+    );
+  animation: ambientBandB 31s ease-in-out -8s infinite alternate;
+}
+
+.ambient-gradient-c {
+  left: 24%;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(62, 117, 108, 0.07) 0%,
+      rgba(159, 194, 185, 0.31) 28%,
+      rgba(221, 231, 227, 0.41) 64%,
+      rgba(244, 241, 232, 0.05) 100%
+    );
+  animation: ambientBandC 24s ease-in-out -5s infinite alternate;
+}
+
+.ambient-gradient-d {
+  left: 43%;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(244, 241, 232, 0.00) 0%,
+      rgba(201, 215, 210, 0.37) 26%,
+      rgba(62, 117, 108, 0.26) 65%,
+      rgba(159, 194, 185, 0.05) 100%
+    );
+  animation: ambientBandD 29s ease-in-out -13s infinite alternate;
+}
+
+.ambient-gradient-e {
+  left: 62%;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(159, 194, 185, 0.04) 0%,
+      rgba(62, 117, 108, 0.24) 24%,
+      rgba(201, 215, 210, 0.33) 59%,
+      rgba(230, 90, 51, 0.055) 100%
+    );
+  animation: ambientBandE 33s ease-in-out -17s infinite alternate;
+}
+
+.ambient-gradient-f {
+  left: 81%;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(221, 231, 227, 0.03) 0%,
+      rgba(201, 215, 210, 0.29) 25%,
+      rgba(159, 194, 185, 0.22) 57%,
+      rgba(62, 117, 108, 0.17) 100%
+    );
+  animation: ambientBandF 28s ease-in-out -4s infinite alternate;
+}
+
+.ambient-haze {
+  z-index: 0;
+  background:
+    radial-gradient(circle at 18% 42%, rgba(159, 194, 185, 0.22), transparent 24%),
+    radial-gradient(circle at 52% 58%, rgba(221, 231, 227, 0.16), transparent 26%),
+    radial-gradient(circle at 84% 34%, rgba(62, 117, 108, 0.08), transparent 22%);
+  filter: blur(54px);
+  animation: ambientHaze 13s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+.ambient-sweep {
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(62, 117, 108, 0) 22%,
+    rgba(62, 117, 108, 0.08) 50%,
+    rgba(62, 117, 108, 0) 78%,
+    transparent 100%
+  );
+  filter: blur(18px);
+  transform: skewX(-12deg);
+  animation: ambientSweep 16s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.ambient-vignette {
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(62, 117, 108, 0.025), transparent 42%),
+    radial-gradient(circle at 92% 84%, rgba(230, 90, 51, 0.022), transparent 32%);
+  animation: ambientBreathe 12s ease-in-out infinite;
+}
+
+.telemetry-cursor {
+  animation: telemetryBlink 1.2s steps(1) infinite;
+}
+
+.cctv-noise::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.035) 0px,
+    rgba(255, 255, 255, 0.035) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  mix-blend-mode: soft-light;
+  opacity: 0.55;
+}
+
+.cctv-screen { animation: cameraFlicker 10s steps(1) infinite; }
+
+.spatial-grid {
+  background-image:
+    linear-gradient(rgba(62, 117, 108, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(62, 117, 108, 0.09) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+
+@keyframes cctvGridDrift {
+  from { background-position: 0 0; }
+  to { background-position: 24px 24px; }
+}
+
+@keyframes ambientSweep {
+  0% { transform: translateX(-60%) skewX(-12deg); opacity: 0; }
+  18% { opacity: 1; }
+  52% { transform: translateX(185%) skewX(-12deg); opacity: 0.8; }
+  100% { transform: translateX(240%) skewX(-12deg); opacity: 0; }
+}
+
+@keyframes ambientBreathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+@keyframes ambientBandA {
+  0% { transform: translate3d(-2vw, -2%, 0) scaleX(0.92) rotate(-1deg); }
+  50% { transform: translate3d(12vw, 3%, 0) scaleX(1.12) rotate(2deg); }
+  100% { transform: translate3d(3vw, -1%, 0) scaleX(0.98) rotate(-1deg); }
+}
+
+@keyframes ambientBandB {
+  0% { transform: translate3d(0vw, 2%, 0) scaleX(1.08) rotate(1deg); }
+  50% { transform: translate3d(-10vw, -3%, 0) scaleX(0.94) rotate(-2deg); }
+  100% { transform: translate3d(9vw, 1%, 0) scaleX(1.04) rotate(1deg); }
+}
+
+@keyframes ambientBandC {
+  0% { transform: translate3d(5vw, -1%, 0) scaleX(0.88) rotate(-2deg); }
+  50% { transform: translate3d(-7vw, 4%, 0) scaleX(1.18) rotate(1deg); }
+  100% { transform: translate3d(10vw, 0%, 0) scaleX(0.96) rotate(2deg); }
+}
+
+@keyframes ambientBandD {
+  0% { transform: translate3d(-8vw, 0%, 0) scaleX(1.06) rotate(2deg); }
+  50% { transform: translate3d(8vw, -4%, 0) scaleX(0.90) rotate(-1deg); }
+  100% { transform: translate3d(-4vw, 2%, 0) scaleX(1.10) rotate(1deg); }
+}
+
+@keyframes ambientBandE {
+  0% { transform: translate3d(6vw, -3%, 0) scaleX(0.96) rotate(-1deg); }
+  50% { transform: translate3d(-11vw, 2%, 0) scaleX(1.14) rotate(2deg); }
+  100% { transform: translate3d(4vw, -1%, 0) scaleX(0.92) rotate(-2deg); }
+}
+
+@keyframes ambientBandF {
+  0% { transform: translate3d(-4vw, 2%, 0) scaleX(1.10) rotate(1deg); }
+  50% { transform: translate3d(9vw, -2%, 0) scaleX(0.92) rotate(-2deg); }
+  100% { transform: translate3d(-8vw, 3%, 0) scaleX(1.05) rotate(1deg); }
+}
+
+@keyframes ambientHaze {
+  0% { transform: translate3d(-1%, -1%, 0) scale(0.98); opacity: 0.52; }
+  50% { transform: translate3d(2%, 1%, 0) scale(1.03); opacity: 0.82; }
+  100% { transform: translate3d(-1%, 2%, 0) scale(1.01); opacity: 0.60; }
+}
+
+@keyframes cctvScan {
+  0% { transform: translateY(-10%); opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translateY(110%); opacity: 0; }
+}
+
+@keyframes cameraFlicker {
+  0%, 100% { opacity: 1; }
+  49% { opacity: 1; }
+  50% { opacity: 0.96; }
+  52% { opacity: 1; }
+}
+
+@keyframes telemetryBlink {
+  0%, 45% { opacity: 1; }
+  46%, 100% { opacity: 0; }
+}
+
+.cctv-scanline { animation: cctvScan 6.5s linear infinite; }
+
+::selection { background: #e65a33; color: #fffdf8; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

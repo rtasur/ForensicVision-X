@@ -1,0 +1,61 @@
+FROM python:3.11-slim-bookworm
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+ENV PIP_DEFAULT_TIMEOUT=600
+ENV PIP_RETRIES=10
+
+# ------------------------------------------------------------
+# Use HTTPS Debian repositories
+# ------------------------------------------------------------
+RUN sed -i \
+    -e 's|http://deb.debian.org|https://deb.debian.org|g' \
+    -e 's|http://security.debian.org|https://security.debian.org|g' \
+    /etc/apt/sources.list.d/debian.sources
+
+# ------------------------------------------------------------
+# Minimal runtime libraries for headless OpenCV
+# Do NOT install system ffmpeg here.
+# ------------------------------------------------------------
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libglib2.0-0 \
+        libxcb1 \
+        libgl1 \
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists*
+# ------------------------------------------------------------
+# Python dependency definitions
+# ------------------------------------------------------------
+COPY requirements.txt .
+
+# ------------------------------------------------------------
+# CPU-only PyTorch
+# ------------------------------------------------------------
+RUN pip install \
+    --no-cache-dir \
+    --trusted-host download.pytorch.org \
+    --trusted-host download-r2.pytorch.org \
+    --timeout 600 \
+    --retries 10 \
+    torch==2.8.0 \
+    torchvision==0.23.0 \
+    --index-url https://download.pytorch.org/whl/cpu
+
+# ------------------------------------------------------------
+# Remaining Python dependencies
+# ------------------------------------------------------------
+RUN pip install \
+    --no-cache-dir \
+    --timeout 600 \
+    --retries 10 \
+    -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

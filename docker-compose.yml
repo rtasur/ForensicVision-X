@@ -1,0 +1,70 @@
+services:
+
+  db:
+    image: postgres:18
+    container_name: forensicvision-db
+
+    environment:
+      POSTGRES_DB: forensicvision
+      POSTGRES_USER: forensicvision
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U forensicvision -d forensicvision"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  backend:
+    build:
+      context: ./backend
+
+    container_name: forensicvision-backend
+
+    environment:
+      DATABASE_URL: postgresql+psycopg://forensicvision:${POSTGRES_PASSWORD}@db:5432/forensicvision
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      USE_MOCK_YOLO: "false"
+      BCRYPT_ROUNDS: 12
+      CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/acquired:/app/acquired
+      - ./backend/reports:/app/reports
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+  frontend:
+    build:
+      context: ./frontend
+
+      args:
+        VITE_API_BASE_URL: http://localhost:8000
+
+    container_name: forensicvision-frontend
+
+    ports:
+      - "5173:80"
+
+    depends_on:
+      - backend
+
+
+volumes:
+  postgres_data:

@@ -55,6 +55,14 @@ async function request<T>(path: string, init: RequestInit = {}, auth = true): Pr
   return payload as T
 }
 
+function getErrorMessage(payload: unknown, status: number) {
+  if (typeof payload === 'object' && payload && 'detail' in payload) {
+    return String((payload as Record<string, unknown>).detail || `Upload failed with ${status}`)
+  }
+  if (typeof payload === 'string' && payload.trim()) return payload
+  return `Upload failed with ${status}`
+}
+
 export const api = {
   health: () => request<{ project: string; status: string; version: string }>('/', {}, false),
 
@@ -77,6 +85,50 @@ export const api = {
     if (metadataFile) form.append('metadata_file', metadataFile)
     return request<any>('/api/evidence/upload', { method: 'POST', body: form })
   },
+
+  uploadEvidenceWithProgress: (
+    caseId: number,
+    evidenceFile: File,
+    metadataFile: File | null,
+    onProgress: (progress: number) => void,
+  ) => new Promise<any>((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    const form = new FormData()
+    form.append('case_id', String(caseId))
+    form.append('evidence_file', evidenceFile)
+    if (metadataFile) form.append('metadata_file', metadataFile)
+
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable) return
+      onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)))
+    }
+
+    xhr.onload = async () => {
+      const contentType = xhr.getResponseHeader('content-type') || ''
+      let payload: unknown = xhr.responseText
+      try {
+        if (contentType.includes('application/json')) payload = JSON.parse(xhr.responseText)
+      } catch {
+        payload = xhr.responseText
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(payload)
+        return
+      }
+
+      if (xhr.status === 401) clearSession()
+      reject(new Error(getErrorMessage(payload, xhr.status)))
+    }
+
+    xhr.onerror = () => reject(new Error('Network error during evidence acquisition.'))
+    xhr.onabort = () => reject(new Error('Evidence acquisition was cancelled.'))
+
+    const token = getToken()
+    xhr.open('POST', `${API_BASE}/api/evidence/upload`)
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    xhr.send(form)
+  }),
 
   normalize: (evidenceId: number, offset: number) => request<any>(`/api/evidence/${evidenceId}/normalize`, {
     method: 'POST',
