@@ -9,24 +9,19 @@ ENV PIP_DEFAULT_TIMEOUT=600
 ENV PIP_RETRIES=10
 
 # ------------------------------------------------------------
-# Use HTTPS Debian repositories
+# Minimal Linux runtime libraries
 # ------------------------------------------------------------
 RUN sed -i \
     -e 's|http://deb.debian.org|https://deb.debian.org|g' \
     -e 's|http://security.debian.org|https://security.debian.org|g' \
     /etc/apt/sources.list.d/debian.sources
 
-# ------------------------------------------------------------
-# Minimal runtime libraries for headless OpenCV
-# Do NOT install system ffmpeg here.
-# ------------------------------------------------------------
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libglib2.0-0 \
-        libxcb1 \
-        libgl1 \
         ca-certificates \
-    && rm -rf /var/lib/apt/lists*
+    && rm -rf /var/lib/apt/lists/*
+
 # ------------------------------------------------------------
 # Python dependency definitions
 # ------------------------------------------------------------
@@ -46,7 +41,7 @@ RUN pip install \
     --index-url https://download.pytorch.org/whl/cpu
 
 # ------------------------------------------------------------
-# Remaining Python dependencies
+# Install application dependencies
 # ------------------------------------------------------------
 RUN pip install \
     --no-cache-dir \
@@ -54,6 +49,25 @@ RUN pip install \
     --retries 10 \
     -r requirements.txt
 
+# ------------------------------------------------------------
+# Force headless OpenCV
+#
+# Ultralytics may install opencv-python as a dependency.
+# Remove GUI OpenCV variants and install the headless build.
+# ------------------------------------------------------------
+RUN pip uninstall -y \
+        opencv-python \
+        opencv-contrib-python \
+        opencv-python-headless \
+    || true \
+    && pip install \
+        --no-cache-dir \
+        opencv-python-headless==4.12.0.88 \
+    && python -c "import cv2; print('OpenCV:', cv2.__version__)"
+
+# ------------------------------------------------------------
+# Application source
+# ------------------------------------------------------------
 COPY . .
 
 EXPOSE 8000
