@@ -4,6 +4,8 @@ setlocal EnableExtensions EnableDelayedExpansion
 title ForensicVision-X - Shutdown Control
 color 0F
 
+cd /d "%~dp0"
+
 echo.
 echo ============================================================
 echo              FORENSICVISION-X
@@ -27,7 +29,6 @@ if errorlevel 1 goto :DOCKER
 
 
 :DOCKER
-
 cls
 
 echo.
@@ -56,25 +57,22 @@ if errorlevel 1 (
     goto :END
 )
 
-cd /d "%~dp0"
+set "COMPOSE_FILE="
 
 if exist "%~dp0docker-compose.yml" (
     set "COMPOSE_FILE=%~dp0docker-compose.yml"
-    goto :DOCKER_STOP
 )
 
-if exist "%~dp0compose.yml" (
+if not defined COMPOSE_FILE if exist "%~dp0compose.yml" (
     set "COMPOSE_FILE=%~dp0compose.yml"
-    goto :DOCKER_STOP
 )
 
-echo [ERROR] Docker Compose file not found.
-echo.
-pause
-goto :END
-
-
-:DOCKER_STOP
+if not defined COMPOSE_FILE (
+    echo [ERROR] Docker Compose file not found.
+    echo.
+    pause
+    goto :END
+)
 
 echo Stopping Docker services...
 echo.
@@ -102,7 +100,6 @@ goto :END
 
 
 :LOCAL
-
 cls
 
 echo.
@@ -120,13 +117,11 @@ taskkill /FI "WINDOWTITLE eq ForensicVision-X Frontend*" /T /F >nul 2>&1
 
 echo Local development processes stopped.
 echo.
-
 pause
 goto :END
 
 
 :EVERYTHING
-
 cls
 
 echo.
@@ -142,19 +137,14 @@ echo.
 where docker >nul 2>&1
 
 if not errorlevel 1 (
-
     docker info >nul 2>&1
 
     if not errorlevel 1 (
-
-        cd /d "%~dp0"
-
         if exist "%~dp0docker-compose.yml" (
             docker compose -f "%~dp0docker-compose.yml" down
         ) else if exist "%~dp0compose.yml" (
             docker compose -f "%~dp0compose.yml" down
         )
-
     )
 )
 
